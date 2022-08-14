@@ -178,7 +178,7 @@ impl CPU {
     }
 
     fn debug(&self) {
-        for (index, name) in self.registers_names.iter().enumerate() {
+        for (_, name) in self.registers_names.iter().enumerate() {
             println!("{}: {}", name, self.get_register(name));
         }
         println!("");
