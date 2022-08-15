@@ -1,9 +1,10 @@
 // Imports
-mod create_memory;
-mod instructions;
+pub mod create_memory;
+pub mod instructions;
 use create_memory::*;
 use instructions::*;
 use std::collections::HashMap;
+use std::process;
 
 // The CPU class for virtual machine.
 pub struct CPU {
@@ -53,7 +54,8 @@ impl CPU {
     }
 
     // Read the value of a register memory
-    fn get_register(&self, name: &str) -> u16 {
+    // TODO DEBUG - remove `pub`
+    pub fn get_register(&self, name: &str) -> u16 {
         // Check if register exists
         if !self.registers_map.contains_key(name) {
             panic!("Register {} not found", name);
