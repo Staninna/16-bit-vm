@@ -109,7 +109,7 @@ impl CPU {
     }
 
     // Read instruction from memory
-    fn fetch(&mut self) -> u8 {
+    fn fetch8(&mut self) -> u8 {
         // Read instruction pointer
         let ip = self.get_register("ip");
 
@@ -177,6 +177,8 @@ impl CPU {
         self.push(self.get_register("r6").to_be_bytes());
         self.push(self.get_register("r7").to_be_bytes());
         self.push(self.get_register("r8").to_be_bytes());
+
+        // Push return address on stack
         self.push(self.get_register("ip").to_be_bytes());
 
         // Push stack frame size on to the stack
@@ -221,8 +223,8 @@ impl CPU {
         self.set_register("r1", r1);
 
         // Pop arguments from subroutine of the stack
-        let n_args = self.pop();
-        for _ in 0..n_args {
+        let subroutine_arguments = self.pop();
+        for _ in 0..subroutine_arguments {
             self.pop();
         }
 
@@ -231,7 +233,7 @@ impl CPU {
     }
 
     fn fetch_register_index(&mut self) -> usize {
-        (self.fetch() as usize % self.registers_names.len()) * 2
+        (self.fetch8() as usize % self.registers_names.len()) * 2
     }
 
     // Execute an instruction
@@ -373,7 +375,7 @@ impl CPU {
             }
 
             // Call subroutine from literal address
-            CALL_LIT => {
+            CAL_LIT => {
                 // Read data from memory
                 let address = self.fetch16();
 
@@ -385,7 +387,7 @@ impl CPU {
             }
 
             // Call subroutine from register address
-            CALL_REG => {
+            CAL_REG => {
                 // Read data from memory
                 let register = self.fetch_register_index();
 
@@ -422,7 +424,7 @@ impl CPU {
     // Run step trough the virtual machine
     pub fn step(&mut self) {
         // Read instruction from memory
-        let instruction = self.fetch();
+        let instruction = self.fetch8();
         self.execute(instruction);
     }
 

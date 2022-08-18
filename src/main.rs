@@ -49,7 +49,7 @@ fn main() {
     memory.buffer[17] = PSH_LIT;
     memory.buffer[18] = 0x00;
     memory.buffer[19] = 0x00; // 0x0000
-    memory.buffer[20] = CALL_LIT;
+    memory.buffer[20] = CAL_LIT;
     memory.buffer[21] = 0x00;
     memory.buffer[22] = 0xAA; // 0x3000
 
@@ -81,7 +81,7 @@ fn main() {
     memory.buffer[subroutine_address as usize + 17] = PSH_LIT;
     memory.buffer[subroutine_address as usize + 18] = 0x00;
     memory.buffer[subroutine_address as usize + 19] = 0x00; // 0x0000
-    memory.buffer[subroutine_address as usize + 20] = CALL_LIT;
+    memory.buffer[subroutine_address as usize + 20] = CAL_LIT;
     memory.buffer[subroutine_address as usize + 21] = 0x00;
     memory.buffer[subroutine_address as usize + 22] = 0xFF; // 0x7000
 
