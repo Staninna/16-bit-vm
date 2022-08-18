@@ -7,7 +7,8 @@ use std::collections::HashMap;
 
 // The CPU class for virtual machine.
 pub struct CPU {
-    memory: ArrayBuffer,
+    // TODO DEBUG - remove `pub`
+    pub memory: ArrayBuffer,
     registers_names: Vec<String>,
     registers: ArrayBuffer,
     registers_map: HashMap<String, usize>,

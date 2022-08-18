@@ -20,7 +20,7 @@ const SP: u8 = 10;
 const FP: u8 = 11;
 
 fn main() {
-    let mut memory = create_memory(256 * 256);
+    let mut memory = create_memory(0xFFFF);
 
     // Load program to memory
 
@@ -49,10 +49,9 @@ fn main() {
     memory.buffer[17] = PSH_LIT;
     memory.buffer[18] = 0x00;
     memory.buffer[19] = 0x00; // 0x0000
-
-    memory.buffer[19 + 1] = CALL_LIT;
-    memory.buffer[20 + 1] = 0x30;
-    memory.buffer[21 + 1] = 0x00; // 0x3000
+    memory.buffer[20] = CALL_LIT;
+    memory.buffer[21] = 0x30;
+    memory.buffer[22] = 0x00; // 0x3000
 
     // Subroutine
     let mut subroutine_address: u16 = 0x3000;
@@ -79,11 +78,14 @@ fn main() {
     memory.buffer[subroutine_address as usize + 15] = 0x0a; // 0x090a
     memory.buffer[subroutine_address as usize + 16] = R8;
 
-    memory.buffer[subroutine_address as usize + 17] = CALL_LIT;
-    memory.buffer[subroutine_address as usize + 18] = 0x70;
-    memory.buffer[subroutine_address as usize + 19] = 0x00; // 0x7000
+    memory.buffer[subroutine_address as usize + 17] = PSH_LIT;
+    memory.buffer[subroutine_address as usize + 18] = 0x00;
+    memory.buffer[subroutine_address as usize + 19] = 0x00; // 0x0000
+    memory.buffer[subroutine_address as usize + 20] = CALL_LIT;
+    memory.buffer[subroutine_address as usize + 21] = 0x70;
+    memory.buffer[subroutine_address as usize + 22] = 0x00; // 0x7000
 
-    memory.buffer[subroutine_address as usize + 20] = RET;
+    memory.buffer[subroutine_address as usize + 23] = RET;
 
     // Subroutine
     subroutine_address = 0x7000;
@@ -118,15 +120,24 @@ fn main() {
     // Create virtual machine
     let mut cpu = CPU::new(memory);
 
+    // Variables
+    let stack_debug_size = 64;
+
     // Run virtual machine
     cpu.view_memory(cpu.get_register("ip"), 16);
-    cpu.view_memory(0xffff - 1 - 62, 64);
+    cpu.view_memory(
+        (cpu.memory.buffer.len() - stack_debug_size) as u16,
+        stack_debug_size,
+    );
     cpu.debug();
     loop {
         wait();
         cpu.step();
         cpu.view_memory(cpu.get_register("ip"), 16);
-        cpu.view_memory(0xffff - 1 - 62, 64);
+        cpu.view_memory(
+            (cpu.memory.buffer.len() - stack_debug_size) as u16,
+            stack_debug_size,
+        );
         cpu.debug();
     }
 }
