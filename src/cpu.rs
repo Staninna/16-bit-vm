@@ -407,6 +407,11 @@ impl CPU {
                 self.pop_state();
             }
 
+            END => {
+                // Exit the VM
+                std::process::exit(0);
+            }
+
             _ => {
                 panic!("Instruction: 0x{:02X} not found", instruction);
             }
