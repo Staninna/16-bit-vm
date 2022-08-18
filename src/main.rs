@@ -20,7 +20,7 @@ const SP: u8 = 10;
 const FP: u8 = 11;
 
 fn main() {
-    let mut memory = create_memory(0xFFFF);
+    let mut memory = create_memory(0x01FF);
 
     // Load program to memory
 
@@ -50,11 +50,11 @@ fn main() {
     memory.buffer[18] = 0x00;
     memory.buffer[19] = 0x00; // 0x0000
     memory.buffer[20] = CALL_LIT;
-    memory.buffer[21] = 0x30;
-    memory.buffer[22] = 0x00; // 0x3000
+    memory.buffer[21] = 0x00;
+    memory.buffer[22] = 0xAA; // 0x3000
 
     // Subroutine
-    let mut subroutine_address: u16 = 0x3000;
+    let mut subroutine_address: u16 = 0x00AA;
 
     memory.buffer[subroutine_address as usize + 0] = PSH_LIT;
     memory.buffer[subroutine_address as usize + 1] = 0x01;
@@ -82,13 +82,13 @@ fn main() {
     memory.buffer[subroutine_address as usize + 18] = 0x00;
     memory.buffer[subroutine_address as usize + 19] = 0x00; // 0x0000
     memory.buffer[subroutine_address as usize + 20] = CALL_LIT;
-    memory.buffer[subroutine_address as usize + 21] = 0x70;
-    memory.buffer[subroutine_address as usize + 22] = 0x00; // 0x7000
+    memory.buffer[subroutine_address as usize + 21] = 0x00;
+    memory.buffer[subroutine_address as usize + 22] = 0xFF; // 0x7000
 
     memory.buffer[subroutine_address as usize + 23] = RET;
 
     // Subroutine
-    subroutine_address = 0x7000;
+    subroutine_address = 0x00FF;
     memory.buffer[subroutine_address as usize + 0] = PSH_LIT;
     memory.buffer[subroutine_address as usize + 1] = 0x99;
     memory.buffer[subroutine_address as usize + 2] = 0x99; // 0x9999
