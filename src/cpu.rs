@@ -8,7 +8,7 @@ use std::collections::HashMap;
 // The CPU class for virtual machine.
 pub struct CPU {
     // TODO DEBUG - remove `pub`
-    pub memory: ArrayBuffer,
+    memory: ArrayBuffer,
     registers_names: Vec<String>,
     registers: ArrayBuffer,
     registers_map: HashMap<String, usize>,
@@ -49,7 +49,7 @@ impl CPU {
         let fp_offset = registers_map.get("fp").unwrap();
 
         // Split u16 to [u8; 2]
-        let memory_position = (memory.length - 1 - 1).to_be_bytes();
+        let memory_position = ((0xFFFF - 2) as u16).to_be_bytes();
 
         // Write to registers memory
         registers.buffer[*sp_offset] = memory_position[0];
@@ -410,11 +410,6 @@ impl CPU {
                 self.pop_state();
             }
 
-            END => {
-                // Exit the VM
-                std::process::exit(0);
-            }
-
             _ => {
                 panic!("Instruction: 0x{:02X} not found", instruction);
             }
@@ -422,10 +417,33 @@ impl CPU {
     }
 
     // Run step trough the virtual machine
-    pub fn step(&mut self) {
+    fn step(&mut self) -> bool {
+        // Debug
+        self.view_memory(self.get_register("ip"), 16);
+        self.view_memory((self.memory.buffer.len() - 64) as u16, 64);
+        self.debug();
+
         // Read instruction from memory
         let instruction = self.fetch8();
+
+        if instruction == HLT {
+            return false;
+        }
         self.execute(instruction);
+        true
+    }
+
+    pub fn run(&mut self) {
+        let halt = self.step();
+
+        // Wait
+        std::io::stdin().read_line(&mut String::new()).unwrap();
+
+        // Look if program ended
+        match halt {
+            true => self.run(),
+            false => std::process::exit(1),
+        }
     }
 
     pub fn debug(&self) {

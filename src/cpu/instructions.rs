@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-pub const END: u8 = 0x00;
 pub const MOV_LIT_REG: u8 = 0x10;
 pub const MOV_REG_REG: u8 = 0x11;
 pub const MOV_REG_MEM: u8 = 0x12;
@@ -12,3 +11,4 @@ pub const POP: u8 = 0x18;
 pub const CAL_LIT: u8 = 0x19;
 pub const CAL_REG: u8 = 0x1a;
 pub const RET: u8 = 0x1b;
+pub const HLT: u8 = 0x1c;
