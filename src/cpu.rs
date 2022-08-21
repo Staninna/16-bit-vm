@@ -7,10 +7,9 @@ use std::collections::HashMap;
 
 // The CPU class for virtual machine.
 pub struct CPU {
-    // TODO DEBUG - remove `pub`
-    memory: ArrayBuffer,
+    memory: ByteArray,
     registers_names: Vec<String>,
-    registers: ArrayBuffer,
+    registers: ByteArray,
     registers_map: HashMap<String, usize>,
     stack_frame_size: u16,
 }
@@ -18,7 +17,7 @@ pub struct CPU {
 // Logic for the CPU class
 impl CPU {
     // Construct a new CPU instance
-    pub fn new(memory: ArrayBuffer) -> Self {
+    pub fn new(memory: ByteArray) -> Self {
         // Names fort all registers
         let registers_names = vec![
             String::from("ip"),  // Instruction pointer
@@ -49,13 +48,13 @@ impl CPU {
         let fp_offset = registers_map.get("fp").unwrap();
 
         // Split u16 to [u8; 2]
-        let memory_position = ((0xFFFF - 2) as u16).to_be_bytes();
+        let memory_position = ((0xFFFF - 1) as u16).to_be_bytes();
 
         // Write to registers memory
-        registers.buffer[*sp_offset] = memory_position[0];
-        registers.buffer[*fp_offset] = memory_position[0];
-        registers.buffer[*sp_offset + 1] = memory_position[1];
-        registers.buffer[*fp_offset + 1] = memory_position[1];
+        registers.set_byte(memory_position[0], *sp_offset);
+        registers.set_byte(memory_position[0], *fp_offset);
+        registers.set_byte(memory_position[1], *sp_offset + 1);
+        registers.set_byte(memory_position[1], *fp_offset + 1);
 
         let stack_frame_size = 0;
 
@@ -70,8 +69,7 @@ impl CPU {
     }
 
     // Read the value of a register memory
-    // TODO DEBUG - remove `pub`
-    pub fn get_register(&self, name: &str) -> u16 {
+    fn get_register(&self, name: &str) -> u16 {
         // Check if register exists
         if !self.registers_map.contains_key(name) {
             panic!("Register {} not found", name);
@@ -82,8 +80,8 @@ impl CPU {
 
         // Read bytes from memory
         let memory = [
-            self.registers.buffer[*offset],
-            self.registers.buffer[*offset + 1],
+            self.registers.get_byte(*offset),
+            self.registers.get_byte(*offset + 1),
         ];
 
         // Read from memory
@@ -104,8 +102,8 @@ impl CPU {
         let bytes = value.to_be_bytes();
 
         // Write to memory
-        self.registers.buffer[*offset] = bytes[0];
-        self.registers.buffer[*offset + 1] = bytes[1];
+        self.registers.set_byte(bytes[0], *offset);
+        self.registers.set_byte(bytes[1], *offset + 1);
     }
 
     // Read instruction from memory
@@ -114,7 +112,7 @@ impl CPU {
         let ip = self.get_register("ip");
 
         // Read instruction from memory
-        let instruction = self.memory.buffer[ip as usize];
+        let instruction = self.memory.get_byte(ip as usize);
 
         // Increment instruction pointer
         self.set_register("ip", ip + 1);
@@ -130,8 +128,8 @@ impl CPU {
 
         // Read instruction from memory
         let instruction = [
-            self.memory.buffer[ip as usize],
-            self.memory.buffer[ip as usize + 1],
+            self.memory.get_byte(ip as usize),
+            self.memory.get_byte(ip as usize + 1),
         ];
 
         // Increment instruction pointer
@@ -146,8 +144,8 @@ impl CPU {
         let sp_address = self.get_register("sp");
 
         // Write memory
-        self.memory.buffer[sp_address as usize] = bytes[0];
-        self.memory.buffer[sp_address as usize + 1] = bytes[1];
+        self.memory.set_byte(bytes[0], sp_address as usize);
+        self.memory.set_byte(bytes[1], sp_address as usize + 1);
 
         // Decrement stack pointer
         self.set_register("sp", sp_address - 2);
@@ -162,8 +160,8 @@ impl CPU {
 
         // Read stack memory
         u16::from_be_bytes([
-            self.memory.buffer[next_sp_address as usize],
-            self.memory.buffer[next_sp_address as usize + 1],
+            self.memory.get_byte(next_sp_address as usize),
+            self.memory.get_byte(next_sp_address as usize + 1),
         ])
     }
 
@@ -249,8 +247,8 @@ impl CPU {
                 let value: [u8; 2] = literal.to_be_bytes();
 
                 // Write to register memory
-                self.registers.buffer[register] = value[0];
-                self.registers.buffer[register + 1] = value[1];
+                self.registers.set_byte(value[0], register);
+                self.registers.set_byte(value[1], register + 1);
             }
 
             // Move register to register
@@ -261,13 +259,13 @@ impl CPU {
 
                 // Read from_register memory
                 let value = [
-                    self.registers.buffer[register_from],
-                    self.registers.buffer[register_from + 1],
+                    self.registers.get_byte(register_from),
+                    self.registers.get_byte(register_from + 1),
                 ];
 
                 // Write to_register memory
-                self.registers.buffer[register_to] = value[0];
-                self.registers.buffer[register_to + 1] = value[1];
+                self.registers.set_byte(value[0], register_to);
+                self.registers.set_byte(value[1], register_to + 1);
             }
 
             // Move register to memory
@@ -278,13 +276,13 @@ impl CPU {
 
                 // Read from_register memory
                 let value = [
-                    self.registers.buffer[register_from],
-                    self.registers.buffer[register_from + 1],
+                    self.registers.get_byte(register_from),
+                    self.registers.get_byte(register_from + 1),
                 ];
 
                 // Write memory
-                self.memory.buffer[address] = value[0];
-                self.memory.buffer[address + 1] = value[1];
+                self.memory.set_byte(value[0], address);
+                self.memory.set_byte(value[1], address + 1);
             }
 
             // Move memory to register
@@ -294,11 +292,14 @@ impl CPU {
                 let register_to = self.fetch_register_index();
 
                 // Read from memory
-                let value = [self.memory.buffer[address], self.memory.buffer[address + 1]];
+                let value = [
+                    self.memory.get_byte(address),
+                    self.memory.get_byte(address + 1),
+                ];
 
                 // Write to register
-                self.registers.buffer[register_to] = value[0];
-                self.registers.buffer[register_to + 1] = value[1];
+                self.registers.set_byte(value[0], register_to);
+                self.registers.set_byte(value[1], register_to + 1);
             }
 
             // Jump if not equal
@@ -321,12 +322,12 @@ impl CPU {
 
                 // Read registers memory
                 let r1_memory = [
-                    self.registers.buffer[r1_offset],
-                    self.registers.buffer[r1_offset + 1],
+                    self.registers.get_byte(r1_offset),
+                    self.registers.get_byte(r1_offset + 1),
                 ];
                 let r2_memory = [
-                    self.registers.buffer[r2_offset],
-                    self.registers.buffer[r2_offset + 1],
+                    self.registers.get_byte(r2_offset),
+                    self.registers.get_byte(r2_offset + 1),
                 ];
 
                 // Convert to u16
@@ -353,8 +354,8 @@ impl CPU {
 
                 // Read register memory
                 let value = [
-                    self.registers.buffer[register],
-                    self.registers.buffer[register + 1],
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
                 ];
 
                 // Push value on to the stack
@@ -370,8 +371,8 @@ impl CPU {
                 let value = self.pop().to_be_bytes();
 
                 // Write to register
-                self.registers.buffer[register] = value[0];
-                self.registers.buffer[register + 1] = value[1];
+                self.registers.set_byte(value[0], register);
+                self.registers.set_byte(value[1], register + 1);
             }
 
             // Call subroutine from literal address
@@ -393,8 +394,8 @@ impl CPU {
 
                 // Read register memory
                 let address = [
-                    self.registers.buffer[register],
-                    self.registers.buffer[register + 1],
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
                 ];
 
                 // Push state to the stack
@@ -418,31 +419,23 @@ impl CPU {
 
     // Run step trough the virtual machine
     fn step(&mut self) -> bool {
-        // Debug
-        self.view_memory(self.get_register("ip"), 16);
-        self.view_memory((self.memory.buffer.len() - 64) as u16, 64);
-        self.debug();
-
         // Read instruction from memory
         let instruction = self.fetch8();
 
         if instruction == HLT {
-            return false;
+            return true;
         }
         self.execute(instruction);
-        true
+        false
     }
 
     pub fn run(&mut self) {
         let halt = self.step();
 
-        // Wait
-        std::io::stdin().read_line(&mut String::new()).unwrap();
-
         // Look if program ended
         match halt {
-            true => self.run(),
-            false => std::process::exit(1),
+            false => self.run(),
+            true => std::process::exit(1),
         }
     }
 
@@ -456,7 +449,7 @@ impl CPU {
     pub fn view_memory(&self, address: u16, size: usize) {
         print!("0x{:04X}: ", address);
         for i in 0..size {
-            print!("0x{:02X} ", self.memory.buffer[address as usize + i]);
+            print!("0x{:02X} ", self.memory.get_byte(address as usize + i));
         }
         println!("");
     }

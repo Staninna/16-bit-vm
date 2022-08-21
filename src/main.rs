@@ -21,34 +21,34 @@ fn main() {
     // Load program to memory
     let mut program_address = 0;
 
-    memory.buffer[program_address + 0] = MOV_LIT_REG;
-    memory.buffer[program_address + 1] = 0x00;
-    memory.buffer[program_address + 2] = 0x01; // 0x0001
-    memory.buffer[program_address + 3] = R1;
+    memory.set_byte(MOV_LIT_REG, program_address + 0);
+    memory.set_byte(0x00, program_address + 1);
+    memory.set_byte(0x01, program_address + 2); // 0x0001
+    memory.set_byte(R1, program_address + 3);
 
-    memory.buffer[program_address + 4] = ADD_REG_REG;
-    memory.buffer[program_address + 5] = R1;
-    memory.buffer[program_address + 6] = R2;
+    memory.set_byte(ADD_REG_REG, program_address + 4);
+    memory.set_byte(R1, program_address + 5);
+    memory.set_byte(R2, program_address + 6);
 
-    memory.buffer[program_address + 7] = JMP_NOT_EQ;
-    memory.buffer[program_address + 8] = 0x00;
-    memory.buffer[program_address + 9] = 0x64; // 0x0064 / 100
-    memory.buffer[program_address + 10] = 0x00;
-    memory.buffer[program_address + 11] = 0x18; // 0x0018 / 24
+    memory.set_byte(JMP_NOT_EQ, program_address + 7);
+    memory.set_byte(0x00, program_address + 8);
+    memory.set_byte(0x64, program_address + 9); // 0x0064 / 100
+    memory.set_byte(0x00, program_address + 10);
+    memory.set_byte(0x18, program_address + 11); // 0x0018 / 24
 
-    memory.buffer[program_address + 12] = HLT;
+    memory.set_byte(HLT, program_address + 12);
 
     program_address = 0x0018;
 
-    memory.buffer[program_address + 0] = MOV_REG_REG;
-    memory.buffer[program_address + 1] = ACC;
-    memory.buffer[program_address + 2] = R2;
+    memory.set_byte(MOV_REG_REG, program_address + 0);
+    memory.set_byte(ACC, program_address + 1);
+    memory.set_byte(R2, program_address + 2);
 
-    memory.buffer[program_address + 3] = JMP_NOT_EQ;
-    memory.buffer[program_address + 4] = 0xFF;
-    memory.buffer[program_address + 5] = 0xFF; // 0xFFFF
-    memory.buffer[program_address + 6] = 0x00;
-    memory.buffer[program_address + 7] = 0x00; // 0xFFFF
+    memory.set_byte(JMP_NOT_EQ, program_address + 3);
+    memory.set_byte(0xFF, program_address + 4);
+    memory.set_byte(0xFF, program_address + 5); // 0xFFFF
+    memory.set_byte(0x00, program_address + 6);
+    memory.set_byte(0x00, program_address + 7); // 0xFFFF
 
     // Create virtual machine
     let mut cpu = CPU::new(memory);

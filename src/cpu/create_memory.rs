@@ -1,18 +1,24 @@
-pub struct ArrayBuffer {
-    pub buffer: Vec<u8>,
-    pub length: u16,
+pub struct ByteArray {
+    buffer: Vec<u8>,
 }
 
-impl ArrayBuffer {
+impl ByteArray {
     pub fn new(length: usize) -> Self {
         Self {
             buffer: vec![0x00; length],
-            length: length as u16,
         }
+    }
+
+    pub fn set_byte(&mut self, data: u8, index: usize) {
+        self.buffer[index] = data;
+    }
+
+    pub fn get_byte(&self, index: usize) -> u8 {
+        self.buffer[index]
     }
 }
 
-pub fn create_memory(length: usize) -> ArrayBuffer {
-    let memory = ArrayBuffer::new(length);
+pub fn create_memory(length: usize) -> ByteArray {
+    let memory = ByteArray::new(length);
     memory
 }
