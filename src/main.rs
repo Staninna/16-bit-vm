@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 mod cpu;
-use cpu::{create_memory::*, instructions::*, *};
+mod create_memory;
+mod instructions;
+use cpu::*;
+use create_memory::*;
+use instructions::*;
 
 const IP: u8 = 0;
 const ACC: u8 = 1;

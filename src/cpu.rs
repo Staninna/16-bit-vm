@@ -1,8 +1,6 @@
 // Imports
-pub mod create_memory;
-pub mod instructions;
-use create_memory::*;
-use instructions::*;
+use crate::create_memory::*;
+use crate::instructions::*;
 use std::collections::HashMap;
 
 // The CPU class for virtual machine.
