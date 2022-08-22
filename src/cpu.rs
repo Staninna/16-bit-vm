@@ -1,13 +1,13 @@
 // Imports
-use crate::create_memory::*;
 use crate::instructions::*;
+use crate::memory::*;
 use std::collections::HashMap;
 
 // The CPU class for virtual machine.
 pub struct CPU {
-    memory: ByteArray,
+    memory: Memory,
     registers_names: Vec<String>,
-    registers: ByteArray,
+    registers: Memory,
     registers_map: HashMap<String, usize>,
     stack_frame_size: u16,
 }
@@ -15,7 +15,7 @@ pub struct CPU {
 // Logic for the CPU class
 impl CPU {
     // Construct a new CPU instance
-    pub fn new(memory: ByteArray) -> Self {
+    pub fn new(memory: Memory) -> Self {
         // Names fort all registers
         let registers_names = vec![
             String::from("ip"),  // Instruction pointer
