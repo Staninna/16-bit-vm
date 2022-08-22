@@ -139,6 +139,7 @@ impl CPU {
         u16::from_be_bytes(instruction)
     }
 
+    // Push u16 on the stack
     fn push(&mut self, bytes: [u8; 2]) {
         // Read stack pointer
         let sp_address = self.get_register("sp");
@@ -152,6 +153,7 @@ impl CPU {
         self.stack_frame_size += 2;
     }
 
+    // Pop u16 from the stack
     fn pop(&mut self) -> u16 {
         // Increment stack pointer
         let next_sp_address = self.get_register("sp") + 2;
@@ -165,6 +167,7 @@ impl CPU {
         ])
     }
 
+    // Push the current CPU state on the stack
     fn push_state(&mut self) {
         // Push register on to the stack
         self.push(self.get_register("r1").to_be_bytes());
@@ -187,6 +190,7 @@ impl CPU {
         self.stack_frame_size = 0;
     }
 
+    // Pop the previous CPU state from the stack
     fn pop_state(&mut self) {
         // Read frame pointer
         let frame_pointer_address = self.get_register("fp");
@@ -230,6 +234,7 @@ impl CPU {
         self.set_register("fp", frame_pointer_address + stack_frame_size);
     }
 
+    // Get offset of given register
     fn fetch_register_index(&mut self) -> usize {
         (self.fetch8() as usize % self.registers_names.len()) * 2
     }
@@ -422,23 +427,31 @@ impl CPU {
         // Read instruction from memory
         let instruction = self.fetch8();
 
+        // Check if program ended
         if instruction == HLT {
             return true;
         }
+
+        // Execute instruction
         self.execute(instruction);
         false
     }
 
+    // Run the program in memory
     pub fn run(&mut self) {
-        let halt = self.step();
+        let mut halt = false;
 
-        // Look if program ended
-        match halt {
-            false => self.run(),
-            true => std::process::exit(1),
+        // While program is not ended
+        while !halt {
+            // Step trough the program
+            halt = self.step();
         }
+
+        // Exit program
+        std::process::exit(1)
     }
 
+    // Print all registers and values
     pub fn debug(&self) {
         for (_, name) in self.registers_names.iter().enumerate() {
             println!("{}: 0x{:02X}", name, self.get_register(name));
@@ -446,6 +459,7 @@ impl CPU {
         println!("");
     }
 
+    // Print all content of memory in given address range
     pub fn view_memory(&self, address: u16, size: usize) {
         print!("0x{:04X}: ", address);
         for i in 0..size {
