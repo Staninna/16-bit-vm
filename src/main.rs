@@ -35,6 +35,16 @@ fn main() {
     memory_mapper.map(stack, 0xFF00, 0xFFFF, true);
 
     // Load program to memory
+    hardcode(&mut memory_mapper);
+
+    // Create virtual machine
+    let mut cpu = CPU::new(memory_mapper);
+
+    // Run the program
+    cpu.run(DEBUG);
+}
+
+fn hardcode(memory_mapper: &mut MemoryMapper) {
     let mut program_address = 0;
 
     memory_mapper.set_byte(MOV_LIT_REG, program_address + 0);
@@ -135,10 +145,4 @@ fn main() {
     memory_mapper.set_byte(R5, program_address + 22);
 
     memory_mapper.set_byte(RET, program_address + 23);
-
-    // Create virtual machine
-    let mut cpu = CPU::new(memory_mapper);
-
-    // Run the program
-    cpu.run(DEBUG);
 }
