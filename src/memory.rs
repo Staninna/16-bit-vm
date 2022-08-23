@@ -6,7 +6,7 @@ pub struct Memory {
 // Logic for the Memory
 impl Memory {
     // Create a new Memory
-    fn new(length: usize) -> Self {
+    pub fn new(length: usize) -> Self {
         Self {
             buffer: vec![0x00; length],
         }

@@ -19,8 +19,10 @@ const R8: u8 = 9;
 const SP: u8 = 10;
 const FP: u8 = 11;
 
+const DEBUG: bool = true;
+
 fn main() {
-    let mut memory = create_memory(0xFFFF);
+    let mut memory = Memory::new(256 * 256);
 
     // Load program to memory
     let mut program_address = 0;
@@ -58,5 +60,5 @@ fn main() {
     let mut cpu = CPU::new(memory);
 
     // Run the program
-    cpu.run();
+    cpu.run(DEBUG);
 }

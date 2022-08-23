@@ -33,7 +33,7 @@ impl CPU {
         ];
 
         // Registers memory
-        let mut registers = create_memory(registers_names.len() * 2);
+        let mut registers = Memory::new(registers_names.len() * 2);
 
         // Map the registers names
         let mut registers_map = HashMap::new();
@@ -421,7 +421,7 @@ impl CPU {
     }
 
     // Run step trough the virtual machine
-    fn step(&mut self) -> bool {
+    fn step(&mut self, debug: bool) -> bool {
         // Read instruction from memory
         let instruction = self.fetch8();
 
@@ -432,17 +432,25 @@ impl CPU {
 
         // Execute instruction
         self.execute(instruction);
+
+        // Print debug info
+        if debug {
+            self.view_memory(self.get_register("ip"), 16);
+            self.debug();
+            println!();
+        }
+
         false
     }
 
     // Run the program in memory
-    pub fn run(&mut self) {
+    pub fn run(&mut self, debug: bool) {
         let mut halt = false;
 
         // While program is not ended
         while !halt {
             // Step trough the program
-            halt = self.step();
+            halt = self.step(debug);
         }
 
         // Exit program
