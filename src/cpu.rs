@@ -61,7 +61,7 @@ impl CPU {
         let fp_offset = registers_map.get("fp").unwrap();
 
         // Split u16 to [u8; 2]
-        let memory_position = ((0xFFFF - 1) as u16).to_be_bytes();
+        let memory_position = ((0x00FF - 1) as u16).to_be_bytes();
 
         // Write to registers memory
         registers.set_byte(memory_position[0], *sp_offset);
@@ -450,9 +450,11 @@ impl CPU {
 
         // Print debug info
         if debug {
-            self.view_memory(self.get_register("ip"), 16);
             self.debug();
-            println!();
+            self.memory_mapper.view_memory(self.get_register("ip"), 32);
+            println!("{}", self.get_register("sp"));
+            self.memory_mapper.view_memory(self.get_register("sp"), 32);
+            println!("");
         }
 
         false
@@ -477,15 +479,5 @@ impl CPU {
         for (_, name) in self.registers_names.iter().enumerate() {
             println!("{}: 0x{:02X}", name, self.get_register(name));
         }
-        println!("");
-    }
-
-    // Print all content of memory in given address range
-    pub fn view_memory(&self, address: u16, size: usize) {
-        print!("0x{:04X}: ", address);
-        for i in 0..size {
-            print!("0x{:02X} ", self.memory_mapper.get_byte(address + i as u16));
-        }
-        println!("");
     }
 }

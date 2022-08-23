@@ -1,4 +1,5 @@
 // Memory class for memory management
+#[derive(Debug)]
 pub struct Memory {
     buffer: Vec<u8>,
     pub length: u16,

@@ -23,10 +23,12 @@ const FP: u8 = 11;
 const DEBUG: bool = true;
 
 fn main() {
-    let memory = Memory::new(0xFFFF);
-    let mut memory_mapper = MemoryMapper::new(memory);
+    let stack = Memory::new(0x00FF);
+    let memory = Memory::new(0xFF00);
+    let mut memory_mapper = MemoryMapper::new();
 
-    memory_mapper.map(0x0000, 0xFFFF, true);
+    memory_mapper.map(memory, 0x0000, 0xFF00, true);
+    memory_mapper.map(stack, 0xFF00, 0xFFFF, true);
 
     // Load program to memory
     let mut program_address = 0;
@@ -44,11 +46,35 @@ fn main() {
     memory_mapper.set_byte(0x00, program_address + 8);
     memory_mapper.set_byte(0x64, program_address + 9); // 0x0064 / 100
     memory_mapper.set_byte(0x00, program_address + 10);
-    memory_mapper.set_byte(0x18, program_address + 11); // 0x0018 / 24
+    memory_mapper.set_byte(0xFF, program_address + 11); // 0x00FF / 256
 
-    memory_mapper.set_byte(HLT, program_address + 12);
+    memory_mapper.set_byte(PSH_LIT, program_address + 12);
+    memory_mapper.set_byte(0xFF, program_address + 13);
+    memory_mapper.set_byte(0xFF, program_address + 14); // 0xFFFF
 
-    program_address = 0x0018;
+    memory_mapper.set_byte(PSH_LIT, program_address + 15);
+    memory_mapper.set_byte(0xEE, program_address + 16);
+    memory_mapper.set_byte(0xEE, program_address + 17); // 0xEEEE
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 18);
+    memory_mapper.set_byte(0xDD, program_address + 19);
+    memory_mapper.set_byte(0xDD, program_address + 20); // 0xDDDD
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 21);
+    memory_mapper.set_byte(0xCC, program_address + 22);
+    memory_mapper.set_byte(0xCC, program_address + 23); // 0xCCCC
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 24);
+    memory_mapper.set_byte(0xBB, program_address + 25);
+    memory_mapper.set_byte(0xBB, program_address + 26); // 0xBBBB
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 27);
+    memory_mapper.set_byte(0xAA, program_address + 28);
+    memory_mapper.set_byte(0xAA, program_address + 29); // 0xAAAA
+
+    memory_mapper.set_byte(HLT, program_address + 30);
+
+    program_address = 0x00FF;
 
     memory_mapper.set_byte(MOV_REG_REG, program_address + 0);
     memory_mapper.set_byte(ACC, program_address + 1);
