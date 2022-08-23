@@ -23,10 +23,14 @@ const FP: u8 = 11;
 const DEBUG: bool = true;
 
 fn main() {
+    // Create a new memory for the virtual machine
     let memory = Memory::new(0xFF00); // 65280 bytes
     let stack = Memory::new(0x00FF); // 255 bytes
+
+    // Create a new memory-mapper fto map different memory regions
     let mut memory_mapper = MemoryMapper::new();
 
+    // Map the memory to the memory-mapper ( Memory / Stack )
     memory_mapper.map(memory, 0x0000, 0xFF00, true);
     memory_mapper.map(stack, 0xFF00, 0xFFFF, true);
 
