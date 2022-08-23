@@ -1,9 +1,7 @@
 #![allow(dead_code)]
 mod cpu;
-mod instructions;
 mod memory;
 use cpu::*;
-use instructions::*;
 use memory::*;
 
 const IP: u8 = 0;
