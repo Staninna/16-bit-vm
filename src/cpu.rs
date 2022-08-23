@@ -1,5 +1,6 @@
 // Imports
-use crate::memory::*;
+use crate::memory::Memory;
+use crate::memory_mapper::MemoryMapper;
 use std::collections::HashMap;
 
 // Define instructions for the CPU
@@ -19,7 +20,7 @@ pub const HLT: u8 = 0x1c;
 
 // The CPU class for virtual machine.
 pub struct CPU {
-    memory: Memory,
+    memory_mapper: MemoryMapper,
     registers_names: Vec<String>,
     registers: Memory,
     registers_map: HashMap<String, usize>,
@@ -29,7 +30,7 @@ pub struct CPU {
 // Logic for the CPU class
 impl CPU {
     // Construct a new CPU instance
-    pub fn new(memory: Memory) -> Self {
+    pub fn new(memory_mapper: MemoryMapper) -> Self {
         // Names fort all registers
         let registers_names = vec![
             String::from("ip"),  // Instruction pointer
@@ -72,7 +73,7 @@ impl CPU {
 
         // Return new CPU
         Self {
-            memory,
+            memory_mapper,
             registers_names,
             registers,
             registers_map,
@@ -124,7 +125,7 @@ impl CPU {
         let ip = self.get_register("ip");
 
         // Read instruction from memory
-        let instruction = self.memory.get_byte(ip as usize);
+        let instruction = self.memory_mapper.get_byte(ip);
 
         // Increment instruction pointer
         self.set_register("ip", ip + 1);
@@ -140,8 +141,8 @@ impl CPU {
 
         // Read instruction from memory
         let instruction = [
-            self.memory.get_byte(ip as usize),
-            self.memory.get_byte(ip as usize + 1),
+            self.memory_mapper.get_byte(ip),
+            self.memory_mapper.get_byte(ip + 1),
         ];
 
         // Increment instruction pointer
@@ -157,8 +158,8 @@ impl CPU {
         let sp_address = self.get_register("sp");
 
         // Write memory
-        self.memory.set_byte(bytes[0], sp_address as usize);
-        self.memory.set_byte(bytes[1], sp_address as usize + 1);
+        self.memory_mapper.set_byte(bytes[0], sp_address);
+        self.memory_mapper.set_byte(bytes[1], sp_address + 1);
 
         // Decrement stack pointer
         self.set_register("sp", sp_address - 2);
@@ -174,8 +175,8 @@ impl CPU {
 
         // Read stack memory
         u16::from_be_bytes([
-            self.memory.get_byte(next_sp_address as usize),
-            self.memory.get_byte(next_sp_address as usize + 1),
+            self.memory_mapper.get_byte(next_sp_address),
+            self.memory_mapper.get_byte(next_sp_address + 1),
         ])
     }
 
@@ -289,7 +290,7 @@ impl CPU {
             MOV_REG_MEM => {
                 // Read data from memory
                 let register_from = self.fetch_register_index();
-                let address = self.fetch16() as usize;
+                let address = self.fetch16();
 
                 // Read from_register memory
                 let value = [
@@ -298,20 +299,20 @@ impl CPU {
                 ];
 
                 // Write memory
-                self.memory.set_byte(value[0], address);
-                self.memory.set_byte(value[1], address + 1);
+                self.memory_mapper.set_byte(value[0], address);
+                self.memory_mapper.set_byte(value[1], address + 1);
             }
 
             // Move memory to register
             MOV_MEM_REG => {
                 // Read data from memory
-                let address = self.fetch16() as usize;
+                let address = self.fetch16();
                 let register_to = self.fetch_register_index();
 
                 // Read from memory
                 let value = [
-                    self.memory.get_byte(address),
-                    self.memory.get_byte(address + 1),
+                    self.memory_mapper.get_byte(address),
+                    self.memory_mapper.get_byte(address + 1),
                 ];
 
                 // Write to register
@@ -483,7 +484,7 @@ impl CPU {
     pub fn view_memory(&self, address: u16, size: usize) {
         print!("0x{:04X}: ", address);
         for i in 0..size {
-            print!("0x{:02X} ", self.memory.get_byte(address as usize + i));
+            print!("0x{:02X} ", self.memory_mapper.get_byte(address + i as u16));
         }
         println!("");
     }
