@@ -61,7 +61,8 @@ impl CPU {
         let fp_offset = registers_map.get("fp").unwrap();
 
         // Split u16 to [u8; 2]
-        let memory_position = ((0x00FF - 1) as u16).to_be_bytes();
+        // TODO try to make this dynamic in some way
+        let memory_position = ((0xFFFF - 1) as u16).to_be_bytes();
 
         // Write to registers memory
         registers.set_byte(memory_position[0], *sp_offset);
@@ -452,8 +453,7 @@ impl CPU {
         if debug {
             self.debug();
             self.memory_mapper.view_memory(self.get_register("ip"), 32);
-            println!("{}", self.get_register("sp"));
-            self.memory_mapper.view_memory(self.get_register("sp"), 32);
+            self.memory_mapper.view_memory(0xFF01, 0x00FE);
             println!("");
         }
 

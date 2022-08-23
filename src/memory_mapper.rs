@@ -43,7 +43,6 @@ impl MemoryMapper {
         for region in self.regions.iter_mut() {
             if address >= region.start && address <= region.end {
                 region.device.set_byte(data, address as usize);
-                println!("{:?}", region.start);
                 return;
             }
         }
@@ -57,7 +56,6 @@ impl MemoryMapper {
         // Check if the index is in a region
         for region in self.regions.iter() {
             if address >= region.start && address <= region.end {
-                println!("{:?}", region.start);
                 return region.device.get_byte(address as usize);
             }
         }
