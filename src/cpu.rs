@@ -62,7 +62,7 @@ impl CPU {
 
         // Split u16 to [u8; 2]
         // TODO try to make this dynamic in some way
-        let memory_position = ((0xFFFF - 1) as u16).to_be_bytes();
+        let memory_position = ((0xFFFF - 1 - 1) as u16).to_be_bytes();
 
         // Write to registers memory
         registers.set_byte(memory_position[0], *sp_offset);
@@ -450,11 +450,13 @@ impl CPU {
         self.execute(instruction);
 
         // Print debug info
+        // TODO: DEBUG
         if debug {
             self.debug();
             self.memory_mapper.view_memory(self.get_register("ip"), 32);
-            self.memory_mapper.view_memory(0xFF01, 0x00FE);
+            self.memory_mapper.view_memory(0xFFDF, 32);
             println!("");
+            // std::io::stdin().read_line(&mut String::new()).unwrap();
         }
 
         false
@@ -468,6 +470,15 @@ impl CPU {
         while !halt {
             // Step trough the program
             halt = self.step(debug);
+        }
+
+        // Last debug info
+        // TODO: DEBUG
+        if debug {
+            self.debug();
+            self.memory_mapper.view_memory(self.get_register("ip"), 32);
+            self.memory_mapper.view_memory(0xFFDF, 32);
+            println!("");
         }
 
         // Exit program

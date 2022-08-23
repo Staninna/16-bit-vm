@@ -1,6 +1,6 @@
 use crate::memory::Memory;
 
-// Region class for io-mapper
+// Region class for memory-mapper
 #[derive(Debug)]
 pub struct Region {
     device: Memory,
@@ -9,22 +9,22 @@ pub struct Region {
     remap: bool,
 }
 
-// Io-mapper class for io management
+// memory-mapper class for io management
 #[derive(Debug)]
 pub struct MemoryMapper {
     regions: Vec<Region>,
 }
 
-// Logic for the Io-mapper
+// Logic for the memory-mapper
 impl MemoryMapper {
-    // Create a new Io-mapper
+    // Create a new memory-mapper
     pub fn new() -> Self {
         Self {
             regions: Vec::new(),
         }
     }
 
-    // Add a region to the Io-mapper
+    // Add a region to the memory-mapper
     pub fn map(&mut self, device: Memory, start: u16, end: u16, remap: bool) {
         self.regions.push(Region {
             device,
@@ -34,15 +34,20 @@ impl MemoryMapper {
         });
     }
 
-    // Remove mapped region from memory
-    // TODO make un_map function
+    // Write a function to remove regions from the memory-mapper
+    pub fn un_map(&mut self, start: u16, end: u16, remap: bool) {
+        self.regions
+            .retain(|region| (region.start >= start && region.end <= end && region.remap == remap));
+    }
 
-    // Write a byte to the io-mapper
+    // Write a byte to the memory-mapper
     pub fn set_byte(&mut self, data: u8, address: u16) {
         // Check if the address is in a region
         for region in self.regions.iter_mut() {
             if address >= region.start && address <= region.end {
-                region.device.set_byte(data, address as usize);
+                region
+                    .device
+                    .set_byte(data, (address - region.start) as usize);
                 return;
             }
         }
@@ -51,12 +56,12 @@ impl MemoryMapper {
         panic!("Index out of bounds");
     }
 
-    // Read a byte from the io-mapper
+    // Read a byte from the memory-mapper
     pub fn get_byte(&self, address: u16) -> u8 {
         // Check if the index is in a region
         for region in self.regions.iter() {
             if address >= region.start && address <= region.end {
-                return region.device.get_byte(address as usize);
+                return region.device.get_byte((address - region.start) as usize);
             }
         }
         panic!("Index out of bounds");
@@ -74,7 +79,7 @@ impl MemoryMapper {
     }
 
     // Find region by address
-    pub fn ref_find_region(&self, address: u16) -> &Region {
+    pub fn find_region(&self, address: u16) -> &Region {
         for region in self.regions.iter() {
             if address >= region.start && address <= region.end {
                 return region;
@@ -84,9 +89,9 @@ impl MemoryMapper {
         panic!("Address not found in any region");
     }
 
-    // Read a bytes from the io-mapper
+    // Read a bytes from the memory-mapper
     pub fn get_uint_16(&self, address: u16) -> u16 {
-        let region = self.ref_find_region(address);
+        let region = self.find_region(address);
         let final_address = if region.remap {
             address - region.start
         } else {
@@ -101,9 +106,9 @@ impl MemoryMapper {
         u16::from_be_bytes(bytes)
     }
 
-    // Read a byte from the io-mapper
+    // Read a byte from the memory-mapper
     pub fn get_uint_8(&self, address: u16) -> u8 {
-        let region = self.ref_find_region(address);
+        let region = self.find_region(address);
         let final_address = if region.remap {
             address - region.start
         } else {
@@ -113,7 +118,7 @@ impl MemoryMapper {
         region.device.get_byte(final_address as usize)
     }
 
-    // Write a bytes to the io-mapper
+    // Write a bytes to the memory-mapper
     pub fn set_uint_16(&mut self, address: u16, value: u16) {
         let region = self.mut_find_region(address);
         let final_address = if region.remap {
@@ -129,7 +134,7 @@ impl MemoryMapper {
             .set_byte(bytes[1], (final_address + 1) as usize);
     }
 
-    // Write a byte to the io-mapper
+    // Write a byte to the memory-mapper
     pub fn set_uint_8(&mut self, address: u16, value: u8) {
         let region = self.mut_find_region(address);
         let final_address = if region.remap {
@@ -143,7 +148,7 @@ impl MemoryMapper {
 
     // Print all content of memory in given address range
     pub fn view_memory(&self, address: u16, size: usize) {
-        let region = self.ref_find_region(address);
+        let region = self.find_region(address);
         let final_address = if region.remap {
             address - region.start
         } else {

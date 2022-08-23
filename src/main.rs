@@ -23,8 +23,8 @@ const FP: u8 = 11;
 const DEBUG: bool = true;
 
 fn main() {
-    let stack = Memory::new(0x00FF);
-    let memory = Memory::new(0xFF00);
+    let memory = Memory::new(0xFF00); // 65280 bytes
+    let stack = Memory::new(0x00FF); // 255 bytes
     let mut memory_mapper = MemoryMapper::new();
 
     memory_mapper.map(memory, 0x0000, 0xFF00, true);
@@ -44,7 +44,7 @@ fn main() {
 
     memory_mapper.set_byte(JMP_NOT_EQ, program_address + 7);
     memory_mapper.set_byte(0x00, program_address + 8);
-    memory_mapper.set_byte(0x64, program_address + 9); // 0x0064 / 100
+    memory_mapper.set_byte(0x14, program_address + 9); // 0x0064 / 100
     memory_mapper.set_byte(0x00, program_address + 10);
     memory_mapper.set_byte(0xFF, program_address + 11); // 0x00FF / 256
 
@@ -72,7 +72,19 @@ fn main() {
     memory_mapper.set_byte(0xAA, program_address + 28);
     memory_mapper.set_byte(0xAA, program_address + 29); // 0xAAAA
 
-    memory_mapper.set_byte(HLT, program_address + 30);
+    memory_mapper.set_byte(PSH_LIT, program_address + 30);
+    memory_mapper.set_byte(0x00, program_address + 31);
+    memory_mapper.set_byte(0x00, program_address + 32); // 0x0000
+
+    memory_mapper.set_byte(CAL_LIT, program_address + 33);
+    memory_mapper.set_byte(0xBA, program_address + 34);
+    memory_mapper.set_byte(0xAA, program_address + 35); // 0xBAAA
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 36);
+    memory_mapper.set_byte(0xAB, program_address + 37);
+    memory_mapper.set_byte(0xCD, program_address + 38); // 0xABCD
+
+    memory_mapper.set_byte(HLT, program_address + 39);
 
     program_address = 0x00FF;
 
@@ -85,6 +97,40 @@ fn main() {
     memory_mapper.set_byte(0xFF, program_address + 5); // 0xFFFF
     memory_mapper.set_byte(0x00, program_address + 6);
     memory_mapper.set_byte(0x00, program_address + 7); // 0xFFFF
+
+    program_address = 0xBAAA;
+
+    memory_mapper.set_byte(MOV_LIT_REG, program_address + 0);
+    memory_mapper.set_byte(0xAD, program_address + 1);
+    memory_mapper.set_byte(0xAD, program_address + 2); // 0xADAD
+    memory_mapper.set_byte(R3, program_address + 3);
+
+    memory_mapper.set_byte(MOV_LIT_REG, program_address + 4);
+    memory_mapper.set_byte(0xAE, program_address + 5);
+    memory_mapper.set_byte(0xAE, program_address + 6); // 0xAEAE
+    memory_mapper.set_byte(R4, program_address + 7);
+
+    memory_mapper.set_byte(MOV_LIT_REG, program_address + 8);
+    memory_mapper.set_byte(0xAF, program_address + 9);
+    memory_mapper.set_byte(0xAF, program_address + 10); // 0xAFAF
+    memory_mapper.set_byte(R5, program_address + 11);
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 12);
+    memory_mapper.set_byte(0xAA, program_address + 13);
+    memory_mapper.set_byte(0xAA, program_address + 14); // 0xAAAA
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 15);
+    memory_mapper.set_byte(0xBB, program_address + 16);
+    memory_mapper.set_byte(0xBB, program_address + 17); // 0xBBBB
+
+    memory_mapper.set_byte(PSH_LIT, program_address + 18);
+    memory_mapper.set_byte(0xCC, program_address + 19);
+    memory_mapper.set_byte(0xCC, program_address + 20); // 0xCCCC
+
+    memory_mapper.set_byte(POP, program_address + 21);
+    memory_mapper.set_byte(R5, program_address + 22);
+
+    memory_mapper.set_byte(RET, program_address + 23);
 
     // Create virtual machine
     let mut cpu = CPU::new(memory_mapper);
