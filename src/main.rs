@@ -59,7 +59,7 @@ fn hardcode(mm: &mut MemoryMapper) {
 
     mm.set_byte(JMP_NOT_EQ, program_address + 7);
     mm.set_byte(0x00, program_address + 8);
-    mm.set_byte(0x14, program_address + 9); // 0x0064 / 100
+    mm.set_byte(0x14, program_address + 9); // 0x0014 / 20
     mm.set_byte(0x00, program_address + 10);
     mm.set_byte(0xFF, program_address + 11); // 0x00FF / 256
 
