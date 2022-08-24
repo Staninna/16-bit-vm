@@ -20,17 +20,15 @@ const R8: u8 = 9;
 const SP: u8 = 10;
 const FP: u8 = 11;
 
-const DEBUG: bool = true;
-
 fn main() {
-    // Create a new memory for the virtual machine
+    // Create memory devices
     let memory = Memory::new(0xFF00); // 65280 bytes
     let stack = Memory::new(0x00FF); // 255 bytes
 
-    // Create a new memory-mapper fto map different memory regions
+    // Create memory mapper
     let mut mm = MemoryMapper::new();
 
-    // Map the memory to the memory-mapper ( Memory / Stack )
+    // Map memory devices to memory mapper
     mm.map(memory, 0x0000, 0xFF00, true);
     mm.map(stack, 0xFF00, 0xFFFF, true);
 
@@ -41,9 +39,10 @@ fn main() {
     let mut cpu = CPU::new(mm);
 
     // Run the program
-    cpu.run(DEBUG);
+    cpu.run();
 }
 
+// Hardcode a program to memory
 fn hardcode(mm: &mut MemoryMapper) {
     let mut program_address = 0;
 
