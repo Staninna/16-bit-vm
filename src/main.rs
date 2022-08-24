@@ -20,6 +20,8 @@ const R8: u8 = 9;
 const SP: u8 = 10;
 const FP: u8 = 11;
 
+const DEBUG: bool = true;
+
 fn main() {
     // Create memory devices
     let memory = Memory::new(0xFF00); // 65280 bytes
@@ -39,7 +41,7 @@ fn main() {
     let mut cpu = CPU::new(mm);
 
     // Run the program
-    cpu.run();
+    cpu.run(DEBUG);
 }
 
 // Hardcode a program to memory

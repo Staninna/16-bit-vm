@@ -402,7 +402,7 @@ impl CPU {
     }
 
     // Run one instruction
-    fn step(&mut self) -> bool {
+    fn step(&mut self, debug: bool) -> bool {
         // Read instruction
         let instruction = self.fetch8();
 
@@ -415,19 +415,27 @@ impl CPU {
         // Execute instruction
         self.execute(instruction);
 
+        // Print debug info
+        if debug {
+            self.debug();
+            self.memory_mapper.view_memory(self.get_register("ip"), 32);
+            self.memory_mapper.view_memory(0xFFFF - 32, 32);
+            println!("")
+        }
+
         // Return false if not ended
         false
     }
 
     // Run program
-    pub fn run(&mut self) {
+    pub fn run(&mut self, debug: bool) {
         // Set halt to false
         let mut halt = false;
 
         // While running program
         while !halt {
             // Run instruction
-            halt = self.step();
+            halt = self.step(debug);
         }
 
         // Exit program
