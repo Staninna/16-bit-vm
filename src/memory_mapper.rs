@@ -1,7 +1,6 @@
 use crate::memory::Memory;
 
 // Region class for memory-mapper
-#[derive(Debug)]
 pub struct Region {
     device: Memory,
     start: u16,
@@ -10,7 +9,6 @@ pub struct Region {
 }
 
 // memory-mapper class for io management
-#[derive(Debug)]
 pub struct MemoryMapper {
     regions: Vec<Region>,
 }
@@ -35,19 +33,19 @@ impl MemoryMapper {
     }
 
     // Write a function to remove regions from the memory-mapper
-    pub fn un_map(&mut self, start: u16, end: u16, remap: bool) {
-        self.regions
-            .retain(|region| (region.start >= start && region.end <= end && region.remap == remap));
-    }
+    // TODO: Implement this function
 
     // Write a byte to the memory-mapper
     pub fn set_byte(&mut self, data: u8, address: u16) {
         // Check if the address is in a region
         for region in self.regions.iter_mut() {
             if address >= region.start && address <= region.end {
-                region
-                    .device
-                    .set_byte(data, (address - region.start) as usize);
+                let final_address = if region.remap {
+                    address - region.start
+                } else {
+                    address
+                };
+                region.device.set_byte(data, final_address as usize);
                 return;
             }
         }
@@ -61,7 +59,12 @@ impl MemoryMapper {
         // Check if the index is in a region
         for region in self.regions.iter() {
             if address >= region.start && address <= region.end {
-                return region.device.get_byte((address - region.start) as usize);
+                let final_address = if region.remap {
+                    address - region.start
+                } else {
+                    address
+                };
+                return region.device.get_byte(final_address as usize);
             }
         }
         panic!("Index out of bounds");
@@ -75,7 +78,7 @@ impl MemoryMapper {
             }
         }
 
-        panic!("Address not found in any region");
+        panic!("Address 0x{:04X} not found in any region", address);
     }
 
     // Find region by address
@@ -86,7 +89,7 @@ impl MemoryMapper {
             }
         }
 
-        panic!("Address not found in any region");
+        panic!("Address 0x{:04X} not found in any region", address);
     }
 
     // Read a bytes from the memory-mapper

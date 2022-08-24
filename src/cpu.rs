@@ -62,7 +62,7 @@ impl CPU {
 
         // Split u16 to [u8; 2]
         // TODO try to make this dynamic in some way
-        let memory_position = ((0xFFFF - 1 - 1) as u16).to_be_bytes();
+        let memory_position = ((0xFFFF - 2) as u16).to_be_bytes();
 
         // Write to registers memory
         registers.set_byte(memory_position[0], *sp_offset);
