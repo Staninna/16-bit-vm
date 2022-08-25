@@ -8,15 +8,18 @@ pub const MOV_LIT_REG: u8 = 0x10;
 pub const MOV_REG_REG: u8 = 0x11;
 pub const MOV_REG_MEM: u8 = 0x12;
 pub const MOV_MEM_REG: u8 = 0x13;
-pub const ADD_REG_REG: u8 = 0x14;
-pub const JMP_NOT_EQ: u8 = 0x15;
-pub const PSH_LIT: u8 = 0x16;
-pub const PSH_REG: u8 = 0x17;
-pub const POP: u8 = 0x18;
-pub const CAL_LIT: u8 = 0x19;
-pub const CAL_REG: u8 = 0x1a;
-pub const RET: u8 = 0x1b;
-pub const HLT: u8 = 0x1c;
+pub const MOV_LIT_MEM: u8 = 0x14;
+pub const MOV_REG_PTR_REG: u8 = 0x15;
+pub const MOV_LIT_OFF_REG: u8 = 0x16;
+pub const ADD_REG_REG: u8 = 0x17;
+pub const JMP_NOT_EQ: u8 = 0x18;
+pub const PSH_LIT: u8 = 0x19;
+pub const PSH_REG: u8 = 0x1A;
+pub const POP: u8 = 0x1B;
+pub const CAL_LIT: u8 = 0x1C;
+pub const CAL_REG: u8 = 0x1D;
+pub const RET: u8 = 0x1E;
+pub const HLT: u8 = 0x1F;
 
 // CPU class
 pub struct CPU {
@@ -232,6 +235,18 @@ impl CPU {
                 // Write to register
                 self.registers.set_byte(value[0], register);
                 self.registers.set_byte(value[1], register + 1);
+            }
+
+            // Move literal to memory
+            MOV_LIT_MEM => {
+                // Read instruction
+                let literal = self.fetch16();
+                let address = self.fetch16() as usize;
+                let value: [u8; 2] = literal.to_be_bytes();
+
+                // Write to register
+                self.registers.set_byte(value[0], address);
+                self.registers.set_byte(value[1], address + 1);
             }
 
             // Move register to register
