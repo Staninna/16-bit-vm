@@ -1,20 +1,20 @@
-use crate::memory::Memory;
+use crate::device::Device;
 
 // Region class
 pub struct Region {
-    device: Memory,
+    device: Device,
     start: u16,
     end: u16,
     remap: bool,
 }
 
-// MemoryMapper class
-pub struct MemoryMapper {
+// DeviceMapper class
+pub struct DeviceMapper {
     regions: Vec<Region>,
 }
 
-// MemoryMapper implementation
-impl MemoryMapper {
+// DeviceMapper implementation
+impl DeviceMapper {
     pub fn new() -> Self {
         Self {
             regions: Vec::new(),
@@ -22,13 +22,16 @@ impl MemoryMapper {
     }
 
     // Map a memory to a region
-    pub fn map(&mut self, device: Memory, start: u16, end: u16, remap: bool) {
-        self.regions.push(Region {
-            device,
-            start,
-            end,
-            remap,
-        });
+    pub fn map(&mut self, device: Device, start: u16, end: u16, remap: bool) {
+        self.regions.insert(
+            0,
+            Region {
+                device,
+                start,
+                end,
+                remap,
+            },
+        );
     }
 
     // TODO: Write a function to remove regions from the memory-mapper

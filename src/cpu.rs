@@ -1,6 +1,6 @@
 // Imports
-use crate::memory::Memory;
-use crate::memory_mapper::MemoryMapper;
+use crate::device::{Device, DeviceType};
+use crate::device_mapper::DeviceMapper;
 use std::collections::HashMap;
 
 // Instructions for the CPU
@@ -20,16 +20,16 @@ pub const HLT: u8 = 0x1c;
 
 // CPU class
 pub struct CPU {
-    memory_mapper: MemoryMapper,
+    device_mapper: DeviceMapper,
     registers_names: Vec<String>,
-    registers: Memory,
+    registers: Device,
     registers_map: HashMap<String, usize>,
     stack_frame_size: u16,
 }
 
 // CPU implementation
 impl CPU {
-    pub fn new(memory_mapper: MemoryMapper) -> Self {
+    pub fn new(device_mapper: DeviceMapper) -> Self {
         // Create CPU all registers
         let registers_names = vec![
             String::from("ip"),  // Instruction pointer
@@ -45,7 +45,7 @@ impl CPU {
             String::from("sp"),  // Stack pointer
             String::from("fp"),  // Frame pointer
         ];
-        let mut registers = Memory::new(registers_names.len() * 2);
+        let mut registers = Device::new(registers_names.len() * 2, DeviceType::Memory);
 
         // Map the registers names
         let mut registers_map = HashMap::new();
@@ -64,7 +64,7 @@ impl CPU {
         registers.set_byte(memory_position[1], *fp_offset + 1);
 
         Self {
-            memory_mapper,
+            device_mapper,
             registers_names,
             registers,
             registers_map,
@@ -105,7 +105,7 @@ impl CPU {
     // Read byte from memory
     fn fetch8(&mut self) -> u8 {
         let ip = self.get_register("ip");
-        let byte = self.memory_mapper.get_byte(ip);
+        let byte = self.device_mapper.get_byte(ip);
         self.set_register("ip", ip + 1);
         byte
     }
@@ -114,8 +114,8 @@ impl CPU {
     fn fetch16(&mut self) -> u16 {
         let ip = self.get_register("ip");
         let bytes = [
-            self.memory_mapper.get_byte(ip),
-            self.memory_mapper.get_byte(ip + 1),
+            self.device_mapper.get_byte(ip),
+            self.device_mapper.get_byte(ip + 1),
         ];
         self.set_register("ip", ip + 2);
         u16::from_be_bytes(bytes)
@@ -127,8 +127,8 @@ impl CPU {
         let sp_address = self.get_register("sp");
 
         // Write stack
-        self.memory_mapper.set_byte(bytes[0], sp_address);
-        self.memory_mapper.set_byte(bytes[1], sp_address + 1);
+        self.device_mapper.set_byte(bytes[0], sp_address);
+        self.device_mapper.set_byte(bytes[1], sp_address + 1);
 
         // Move stack pointer
         self.set_register("sp", sp_address - 2);
@@ -144,8 +144,8 @@ impl CPU {
 
         // Read stack
         u16::from_be_bytes([
-            self.memory_mapper.get_byte(next_sp_address),
-            self.memory_mapper.get_byte(next_sp_address + 1),
+            self.device_mapper.get_byte(next_sp_address),
+            self.device_mapper.get_byte(next_sp_address + 1),
         ])
     }
 
@@ -264,8 +264,8 @@ impl CPU {
                 ];
 
                 // Write memory
-                self.memory_mapper.set_byte(value[0], address);
-                self.memory_mapper.set_byte(value[1], address + 1);
+                self.device_mapper.set_byte(value[0], address);
+                self.device_mapper.set_byte(value[1], address + 1);
             }
 
             // Move memory to register
@@ -276,8 +276,8 @@ impl CPU {
 
                 // Read from memory
                 let value = [
-                    self.memory_mapper.get_byte(address),
-                    self.memory_mapper.get_byte(address + 1),
+                    self.device_mapper.get_byte(address),
+                    self.device_mapper.get_byte(address + 1),
                 ];
 
                 // Write register
@@ -418,9 +418,13 @@ impl CPU {
         // Print debug info
         if debug {
             self.debug();
-            self.memory_mapper.view_memory(self.get_register("ip"), 32);
-            self.memory_mapper.view_memory(0xFFFF - 32, 32);
-            println!("")
+            self.device_mapper.view_memory(self.get_register("ip"), 32);
+            self.device_mapper.view_memory(0xFFFF - 32, 32);
+            println!("");
+
+            // Wait for input
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).unwrap();
         }
 
         // Return false if not ended
@@ -436,6 +440,18 @@ impl CPU {
         while !halt {
             // Run instruction
             halt = self.step(debug);
+        }
+
+        // Print debug info
+        if debug {
+            self.debug();
+            self.device_mapper.view_memory(self.get_register("ip"), 32);
+            self.device_mapper.view_memory(0xFFFF - 32, 32);
+            println!("");
+
+            // Wait for input
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).unwrap();
         }
 
         // Exit program
