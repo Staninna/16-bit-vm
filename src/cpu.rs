@@ -241,12 +241,12 @@ impl CPU {
             MOV_LIT_MEM => {
                 // Read instruction
                 let literal = self.fetch16();
-                let address = self.fetch16() as usize;
+                let address = self.fetch16();
                 let value: [u8; 2] = literal.to_be_bytes();
 
                 // Write to register
-                self.registers.set_byte(value[0], address);
-                self.registers.set_byte(value[1], address + 1);
+                self.device_mapper.set_byte(value[0], address);
+                self.device_mapper.set_byte(value[1], address + 1);
             }
 
             // Move register to register

@@ -66,15 +66,11 @@ fn hardcode(mm: &mut DeviceMapper) {
 }
 
 fn print(mm: &mut DeviceMapper, pos: u8, index: u16, character: &str, command: u8) -> u16 {
-    mm.set_byte(MOV_LIT_REG, index);
+    mm.set_byte(MOV_LIT_MEM, index);
     mm.set_byte(command, index + 1);
     mm.set_byte(character.as_bytes()[0], index + 2);
-    mm.set_byte(R1, index + 3);
+    mm.set_byte(0x30, index + 3);
+    mm.set_byte(pos, index + 4);
 
-    mm.set_byte(MOV_REG_MEM, index + 4);
-    mm.set_byte(R1, index + 5);
-    mm.set_byte(0x30, index + 6);
-    mm.set_byte(pos, index + 7);
-
-    index + 8
+    index + 5
 }
