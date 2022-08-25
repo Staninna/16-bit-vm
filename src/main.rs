@@ -4,7 +4,7 @@ mod device;
 mod device_mapper;
 
 use cpu::*;
-use device::{Device, DeviceType};
+use device::*;
 use device_mapper::DeviceMapper;
 
 const IP: u8 = 0;
@@ -52,18 +52,22 @@ fn main() {
 fn hardcode(mm: &mut DeviceMapper) {
     let mut program_address = 0;
 
-    let message = "Hello, world!";
-
-    for (i, c) in message.chars().enumerate() {
-        program_address = print(mm, i as u8, program_address, &c.to_string());
+    // Clear screen
+    program_address = print(mm, 0, program_address, " ", STDOUT_CLEAR);
+    for i in 0x00..0xFF {
+        if i % 2 == 0 {
+            program_address = print(mm, i as u8, program_address, "$", STDOUT_BOLD);
+        } else {
+            program_address = print(mm, i as u8, program_address, "%", STDOUT_REGULAR);
+        }
     }
 
     mm.set_byte(HLT, program_address);
 }
 
-fn print(mm: &mut DeviceMapper, pos: u8, index: u16, character: &str) -> u16 {
+fn print(mm: &mut DeviceMapper, pos: u8, index: u16, character: &str, command: u8) -> u16 {
     mm.set_byte(MOV_LIT_REG, index);
-    mm.set_byte(0x00, index + 1);
+    mm.set_byte(command, index + 1);
     mm.set_byte(character.as_bytes()[0], index + 2);
     mm.set_byte(R1, index + 3);
 
