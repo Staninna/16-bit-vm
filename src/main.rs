@@ -28,7 +28,7 @@ fn main() {
     let stack = Device::new(0x00FF, DeviceType::Memory);
 
     // Create screen device
-    let screen = Device::new(0x00FF, DeviceType::Screen);
+    let screen = Device::new(0x00FF, DeviceType::Stdout);
 
     // Create memory mapper
     let mut mm = DeviceMapper::new();

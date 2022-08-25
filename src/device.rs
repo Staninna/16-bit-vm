@@ -1,7 +1,7 @@
 // Device types
 pub enum DeviceType {
     Memory,
-    Screen,
+    Stdout,
 }
 
 // Memory class
@@ -27,7 +27,7 @@ impl Device {
             DeviceType::Memory => {
                 self.buffer[address] = data;
             }
-            DeviceType::Screen => {
+            DeviceType::Stdout => {
                 let character_raw = data & 0xFF;
 
                 let x = address % 16;
@@ -44,14 +44,14 @@ impl Device {
     pub fn get_byte(&self, address: usize) -> u8 {
         match self.device_type {
             DeviceType::Memory => self.buffer[address],
-            DeviceType::Screen => 0x00,
+            DeviceType::Stdout => 0x00,
         }
     }
 
-    // Move cursor to x, y on screen
+    // Move cursor to x, y on Stdout
     pub fn move_to(&self, x: usize, y: usize) {
         match self.device_type {
-            DeviceType::Screen => {
+            DeviceType::Stdout => {
                 print!("\x1B[{};{}H", y, x);
             }
             _ => {}
