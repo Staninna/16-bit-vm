@@ -32,6 +32,7 @@ impl Device {
             DeviceType::Memory => {
                 self.buffer[address] = data;
             }
+
             DeviceType::Stdout => {
                 match data {
                     // Clear screen
@@ -68,6 +69,7 @@ impl Device {
     pub fn get_byte(&self, address: usize) -> u8 {
         match self.device_type {
             DeviceType::Memory => self.buffer[address],
+
             DeviceType::Stdout => 0x00,
         }
     }
@@ -78,6 +80,7 @@ impl Device {
             DeviceType::Stdout => {
                 print!("\x1B[{};{}H", y, x);
             }
+
             _ => {}
         }
     }
