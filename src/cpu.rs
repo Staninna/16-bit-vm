@@ -4,32 +4,62 @@ use crate::device_mapper::DeviceMapper;
 use std::collections::HashMap;
 
 // Instructions for the CPU
-pub const MOV_LIT_REG: u8 = 0x10; // TODO: Test if works
-pub const MOV_REG_REG: u8 = 0x11; // TODO: Test if works
-pub const MOV_REG_MEM: u8 = 0x12; // TODO: Test if works
-pub const MOV_MEM_REG: u8 = 0x13; // TODO: Test if works
-pub const MOV_LIT_MEM: u8 = 0x14; // TODO: Test if works
-pub const MOV_REG_PTR_REG: u8 = 0x15; // TODO: test if works
-pub const MOV_LIT_OFF_REG: u8 = 0x16; // TODO: test if works
 
-pub const ADD_REG_REG: u8 = 0x17; // TODO: Test if works
-pub const ADD_LIT_REG: u8 = 0x18; // TODO: Test if works
-pub const SUB_REG_REG: u8 = 0x19; // TODO: Test if works
-pub const SUB_LIT_REG: u8 = 0x1A; // TODO: Test if works
-pub const SUB_REG_LIT: u8 = 0x1B; // TODO: Test if works
-pub const INC_REG: u8 = 0x1C; // TODO: Test if works
-pub const DEC_REG: u8 = 0x1D; // TODO: Test if works
-pub const MUL_LIT_REG: u8 = 0x1E; // TODO: Test if works
-pub const MUL_REG_REG: u8 = 0x1F; // TODO: Test if works
+// Move instructions // TODO: Test if all instructions are implemented correctly
+pub const MOV_LIT_REG: u8 = 0x10;
+pub const MOV_REG_REG: u8 = 0x11;
+pub const MOV_REG_MEM: u8 = 0x12;
+pub const MOV_MEM_REG: u8 = 0x13;
+pub const MOV_LIT_MEM: u8 = 0x14;
+pub const MOV_REG_PTR_REG: u8 = 0x15;
+pub const MOV_LIT_OFF_REG: u8 = 0x16;
 
-pub const JMP_NOT_EQ: u8 = 0x20; // TODO: Test if works
-pub const PSH_LIT: u8 = 0x21; // TODO: Test if works
-pub const PSH_REG: u8 = 0x22; // TODO: Test if works
-pub const POP: u8 = 0x23; // TODO: Test if works
-pub const CAL_LIT: u8 = 0x24; // TODO: Test if works
-pub const CAL_REG: u8 = 0x25; // TODO: Test if works
-pub const RET: u8 = 0x26; // TODO: Test if works
-pub const HLT: u8 = 0x27; // TODO: Test if works
+// Arithmetic instructions // TODO: Test if all instructions are implemented correctly
+pub const ADD_REG_REG: u8 = 0x20;
+pub const ADD_LIT_REG: u8 = 0x21;
+pub const SUB_LIT_REG: u8 = 0x22;
+pub const SUB_REG_LIT: u8 = 0x23;
+pub const SUB_REG_REG: u8 = 0x24;
+pub const INC_REG: u8 = 0x25;
+pub const DEC_REG: u8 = 0x26;
+pub const MUL_LIT_REG: u8 = 0x27;
+pub const MUL_REG_REG: u8 = 0x28;
+
+// Binary manipulation instructions // TODO: Test if all instructions are implemented correctly
+pub const LSH_REG_LIT: u8 = 0x30;
+pub const LSH_REG_REG: u8 = 0x31;
+pub const RSH_REG_LIT: u8 = 0x32;
+pub const RSH_REG_REG: u8 = 0x33;
+pub const AND_REG_LIT: u8 = 0x34;
+pub const AND_REG_REG: u8 = 0x35;
+pub const OR_REG_LIT: u8 = 0x36;
+pub const OR_REG_REG: u8 = 0x37;
+pub const XOR_REG_LIT: u8 = 0x38;
+pub const XOR_REG_REG: u8 = 0x39;
+pub const NOT: u8 = 0x3A;
+
+// Branching instructions // TODO: Test if all instructions are implemented correctly
+pub const JMP_NOT_EQ: u8 = 0x40;
+pub const JNE_REG: u8 = 0x41;
+pub const JEQ_REG: u8 = 0x42;
+pub const JEQ_LIT: u8 = 0x43;
+pub const JLT_REG: u8 = 0x44;
+pub const JLT_LIT: u8 = 0x45;
+pub const JGT_REG: u8 = 0x46;
+pub const JGT_LIT: u8 = 0x47;
+pub const JLE_REG: u8 = 0x48;
+pub const JLE_LIT: u8 = 0x49;
+pub const JGE_REG: u8 = 0x4A;
+pub const JGE_LIT: u8 = 0x4B;
+
+// Miscellaneous instructions // TODO: Test if all instructions are implemented correctly
+pub const PSH_LIT: u8 = 0x50;
+pub const PSH_REG: u8 = 0x51;
+pub const POP: u8 = 0x52;
+pub const CAL_LIT: u8 = 0x53;
+pub const CAL_REG: u8 = 0x54;
+pub const RET: u8 = 0x55;
+pub const HLT: u8 = 0x56;
 
 // CPU class
 pub struct CPU {
@@ -537,6 +567,106 @@ impl CPU {
                 // Write register
                 self.registers.set_byte(new_value[0], register);
                 self.registers.set_byte(new_value[1], register + 1);
+            }
+
+            // Binary manipulation instructions
+
+            // Left shift register by literal
+            LSH_REG_LIT => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let literal = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Shift value
+                let new_value = (value_register << literal).to_be_bytes();
+
+                // Left shift value
+                self.registers.set_byte(new_value[0], register);
+                self.registers.set_byte(new_value[1], register + 1);
+            }
+
+            // Left shift register by register
+            LSH_REG_REG => {
+                // Read instruction
+                let register1 = self.fetch_register_index();
+                let register2 = self.fetch_register_index();
+
+                // Read register 1
+                let register1_memory = [
+                    self.registers.get_byte(register1),
+                    self.registers.get_byte(register1 + 1),
+                ];
+                let value_register1 = u16::from_be_bytes(register1_memory);
+
+                // Read register 2
+                let register2_memory = [
+                    self.registers.get_byte(register2),
+                    self.registers.get_byte(register2 + 1),
+                ];
+                let shift_by = u16::from_be_bytes(register2_memory);
+
+                // Shift value
+                let new_value = (value_register1 << shift_by).to_be_bytes();
+
+                // Write register 1
+                self.registers.set_byte(new_value[0], register1);
+                self.registers.set_byte(new_value[1], register1 + 1);
+            }
+
+            // Right shift register by literal
+            RSH_REG_LIT => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let literal = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Shift value
+                let new_value = (value_register >> literal).to_be_bytes();
+
+                // Left shift value
+                self.registers.set_byte(new_value[0], register);
+                self.registers.set_byte(new_value[1], register + 1);
+            }
+
+            // Right shift register by register
+            RSH_REG_REG => {
+                // Read instruction
+                let register1 = self.fetch_register_index();
+                let register2 = self.fetch_register_index();
+
+                // Read register 1
+                let register1_memory = [
+                    self.registers.get_byte(register1),
+                    self.registers.get_byte(register1 + 1),
+                ];
+                let value_register1 = u16::from_be_bytes(register1_memory);
+
+                // Read register 2
+                let register2_memory = [
+                    self.registers.get_byte(register2),
+                    self.registers.get_byte(register2 + 1),
+                ];
+                let shift_by = u16::from_be_bytes(register2_memory);
+
+                // Shift value
+                let new_value = (value_register1 >> shift_by).to_be_bytes();
+
+                // Write register 1
+                self.registers.set_byte(new_value[0], register1);
+                self.registers.set_byte(new_value[1], register1 + 1);
             }
 
             // Jump if not equal
