@@ -751,6 +751,22 @@ impl CPU {
                 self.set_register("acc", value_register1 | value_register2)
             }
 
+            // Not register
+            NOT => {
+                // Read instruction
+                let register = self.fetch_register_index();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Not value
+                self.set_register("acc", !value_register)
+            }
+
             // Jump if not equal
             JMP_NOT_EQ => {
                 // Read instruction
