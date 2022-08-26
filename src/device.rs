@@ -54,7 +54,7 @@ impl Device {
 
                 let character_raw = data & 0xFF;
 
-                let x = ((address % 16) + 1) * 2;
+                let x = ((address % 16) * 2) + 1;
                 let y = address / 16;
                 self.move_to(x, y);
 
