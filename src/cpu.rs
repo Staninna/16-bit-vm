@@ -4,32 +4,32 @@ use crate::device_mapper::DeviceMapper;
 use std::collections::HashMap;
 
 // Instructions for the CPU
-pub const MOV_LIT_REG: u8 = 0x10;
-pub const MOV_REG_REG: u8 = 0x11;
-pub const MOV_REG_MEM: u8 = 0x12;
-pub const MOV_MEM_REG: u8 = 0x13;
-pub const MOV_LIT_MEM: u8 = 0x14;
-pub const MOV_REG_PTR_REG: u8 = 0x15;
-pub const MOV_LIT_OFF_REG: u8 = 0x16;
+pub const MOV_LIT_REG: u8 = 0x10; // TODO: Test if works
+pub const MOV_REG_REG: u8 = 0x11; // TODO: Test if works
+pub const MOV_REG_MEM: u8 = 0x12; // TODO: Test if works
+pub const MOV_MEM_REG: u8 = 0x13; // TODO: Test if works
+pub const MOV_LIT_MEM: u8 = 0x14; // TODO: Test if works
+pub const MOV_REG_PTR_REG: u8 = 0x15; // TODO: test if works
+pub const MOV_LIT_OFF_REG: u8 = 0x16; // TODO: test if works
 
-pub const ADD_REG_REG: u8 = 0x17;
-pub const ADD_LIT_REG: u8 = 0x18;
-pub const SUB_REG_REG: u8 = 0x19;
-pub const SUB_LIT_REG: u8 = 0x1A;
-pub const SUB_REG_LIT: u8 = 0x1B;
-pub const INC_REG: u8 = 0x1C;
-pub const DEC_REG: u8 = 0x1D;
-pub const MUL_LIT_REG: u8 = 0x1E;
-pub const MUL_REG_REG: u8 = 0x1F;
+pub const ADD_REG_REG: u8 = 0x17; // TODO: Test if works
+pub const ADD_LIT_REG: u8 = 0x18; // TODO: Test if works
+pub const SUB_REG_REG: u8 = 0x19; // TODO: Test if works
+pub const SUB_LIT_REG: u8 = 0x1A; // TODO: Test if works
+pub const SUB_REG_LIT: u8 = 0x1B; // TODO: Test if works
+pub const INC_REG: u8 = 0x1C; // TODO: Test if works
+pub const DEC_REG: u8 = 0x1D; // TODO: Test if works
+pub const MUL_LIT_REG: u8 = 0x1E; // TODO: Test if works
+pub const MUL_REG_REG: u8 = 0x1F; // TODO: Test if works
 
-pub const JMP_NOT_EQ: u8 = 0x20;
-pub const PSH_LIT: u8 = 0x21;
-pub const PSH_REG: u8 = 0x22;
-pub const POP: u8 = 0x23;
-pub const CAL_LIT: u8 = 0x24;
-pub const CAL_REG: u8 = 0x25;
-pub const RET: u8 = 0x26;
-pub const HLT: u8 = 0x27;
+pub const JMP_NOT_EQ: u8 = 0x20; // TODO: Test if works
+pub const PSH_LIT: u8 = 0x21; // TODO: Test if works
+pub const PSH_REG: u8 = 0x22; // TODO: Test if works
+pub const POP: u8 = 0x23; // TODO: Test if works
+pub const CAL_LIT: u8 = 0x24; // TODO: Test if works
+pub const CAL_REG: u8 = 0x25; // TODO: Test if works
+pub const RET: u8 = 0x26; // TODO: Test if works
+pub const HLT: u8 = 0x27; // TODO: Test if works
 
 // CPU class
 pub struct CPU {
