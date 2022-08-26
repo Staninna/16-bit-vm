@@ -11,15 +11,25 @@ pub const MOV_MEM_REG: u8 = 0x13;
 pub const MOV_LIT_MEM: u8 = 0x14;
 pub const MOV_REG_PTR_REG: u8 = 0x15;
 pub const MOV_LIT_OFF_REG: u8 = 0x16;
+
 pub const ADD_REG_REG: u8 = 0x17;
-pub const JMP_NOT_EQ: u8 = 0x18;
-pub const PSH_LIT: u8 = 0x19;
-pub const PSH_REG: u8 = 0x1A;
-pub const POP: u8 = 0x1B;
-pub const CAL_LIT: u8 = 0x1C;
-pub const CAL_REG: u8 = 0x1D;
-pub const RET: u8 = 0x1E;
-pub const HLT: u8 = 0x1F;
+pub const ADD_LIT_REG: u8 = 0x18;
+pub const SUB_REG_REG: u8 = 0x19;
+pub const SUB_LIT_REG: u8 = 0x1A;
+pub const SUB_REG_LIT: u8 = 0x1B;
+pub const INC_REG: u8 = 0x1C;
+pub const DEC_REG: u8 = 0x1D;
+pub const MUL_LIT_REG: u8 = 0x1E;
+pub const MUL_REG_REG: u8 = 0x1F;
+
+pub const JMP_NOT_EQ: u8 = 0x20;
+pub const PSH_LIT: u8 = 0x21;
+pub const PSH_REG: u8 = 0x22;
+pub const POP: u8 = 0x23;
+pub const CAL_LIT: u8 = 0x24;
+pub const CAL_REG: u8 = 0x25;
+pub const RET: u8 = 0x26;
+pub const HLT: u8 = 0x27;
 
 // CPU class
 pub struct CPU {
@@ -225,6 +235,8 @@ impl CPU {
     // Execute an instruction
     fn execute(&mut self, instruction: u8) {
         match instruction {
+            // Move instructions
+
             // Move literal to register
             MOV_LIT_REG => {
                 // Read instruction
@@ -247,6 +259,30 @@ impl CPU {
                 // Write to register
                 self.device_mapper.set_byte(value[0], address);
                 self.device_mapper.set_byte(value[1], address + 1);
+            }
+
+            // Move register to register with offset
+            MOV_LIT_OFF_REG => {
+                // Read instruction
+                let base_address = self.fetch16();
+                let register_from = self.fetch_register_index();
+                let register_to = self.fetch_register_index();
+
+                // Read offset
+                let offset = u16::from_be_bytes([
+                    self.registers.get_byte(register_from),
+                    self.registers.get_byte(register_from + 1),
+                ]);
+
+                // Read value
+                let value = [
+                    self.device_mapper.get_byte(base_address + offset),
+                    self.device_mapper.get_byte(base_address + offset),
+                ];
+
+                // Write to register
+                self.registers.set_byte(value[0], register_to);
+                self.registers.set_byte(value[1], register_to + 1);
             }
 
             // Move register to register
@@ -283,6 +319,29 @@ impl CPU {
                 self.device_mapper.set_byte(value[1], address + 1);
             }
 
+            // Move register pointer to register
+            MOV_REG_PTR_REG => {
+                // Read instruction
+                let register_from = self.fetch_register_index();
+                let register_to = self.fetch_register_index();
+
+                // Read register
+                let pointer = u16::from_be_bytes([
+                    self.registers.get_byte(register_from),
+                    self.registers.get_byte(register_from + 1),
+                ]);
+
+                // Read pointer value
+                let value = [
+                    self.device_mapper.get_byte(pointer),
+                    self.device_mapper.get_byte(pointer + 1),
+                ];
+
+                // Write to_register
+                self.registers.set_byte(value[0], register_to);
+                self.registers.set_byte(value[1], register_to + 1);
+            }
+
             // Move memory to register
             MOV_MEM_REG => {
                 // Read instruction
@@ -300,6 +359,186 @@ impl CPU {
                 self.registers.set_byte(value[1], register_to + 1);
             }
 
+            // Algorithmic instructions
+
+            // Add register to register
+            ADD_REG_REG => {
+                // Read instruction
+                let register1 = self.fetch_register_index();
+                let register2 = self.fetch_register_index();
+
+                // Read register 1
+                let register1_memory = [
+                    self.registers.get_byte(register1),
+                    self.registers.get_byte(register1 + 1),
+                ];
+                let value_register1 = u16::from_be_bytes(register1_memory);
+
+                // Read register 2
+                let register2_value = [
+                    self.registers.get_byte(register2),
+                    self.registers.get_byte(register2 + 1),
+                ];
+                let value_register2 = u16::from_be_bytes(register2_value);
+
+                // Add values
+                self.set_register("acc", value_register1 + value_register2);
+            }
+
+            // Add literal to register
+            ADD_LIT_REG => {
+                // Read instruction
+                let literal = self.fetch16();
+                let register = self.fetch_register_index();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Add values
+                self.set_register("acc", value_register + literal);
+            }
+
+            // Subtract literal from register
+            SUB_LIT_REG => {
+                // Read instruction
+                let literal = self.fetch16();
+                let register = self.fetch_register_index();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Subtract values
+                self.set_register("acc", value_register - literal);
+            }
+
+            // Subtract register from literal
+            SUB_REG_LIT => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let literal = self.fetch16();
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Subtract values
+                self.set_register("acc", value_register - literal);
+            }
+
+            // Subtract register from register
+            SUB_REG_REG => {
+                // Read instruction
+                let register1 = self.fetch_register_index();
+                let register2 = self.fetch_register_index();
+
+                // Read register 1
+                let register1_memory = [
+                    self.registers.get_byte(register1),
+                    self.registers.get_byte(register1 + 1),
+                ];
+                let value_register1 = u16::from_be_bytes(register1_memory);
+
+                // Read register 2
+                let register2_value = [
+                    self.registers.get_byte(register2),
+                    self.registers.get_byte(register2 + 1),
+                ];
+                let value_register2 = u16::from_be_bytes(register2_value);
+
+                // Subtract values
+                self.set_register("acc", value_register1 - value_register2);
+            }
+
+            // Multiply literal by register
+            MUL_LIT_REG => {
+                // Read instruction
+                let literal = self.fetch16();
+                let register = self.fetch_register_index();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Multiply values
+                self.set_register("acc", value_register * literal);
+            }
+
+            // Multiply register by register
+            MUL_REG_REG => {
+                // Read instruction
+                let register1 = self.fetch_register_index();
+                let register2 = self.fetch_register_index();
+
+                // Read register 1
+                let register1_memory = [
+                    self.registers.get_byte(register1),
+                    self.registers.get_byte(register1 + 1),
+                ];
+                let value_register1 = u16::from_be_bytes(register1_memory);
+
+                // Read register 2
+                let register2_value = [
+                    self.registers.get_byte(register2),
+                    self.registers.get_byte(register2 + 1),
+                ];
+                let value_register2 = u16::from_be_bytes(register2_value);
+
+                // Multiply values
+                self.set_register("acc", value_register1 * value_register2);
+            }
+
+            // Increment register
+            INC_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+
+                // Increment value
+                let old_value = u16::from_be_bytes(register_memory);
+                let new_value = (old_value + 1).to_be_bytes();
+
+                // Write register
+                self.registers.set_byte(new_value[0], register);
+                self.registers.set_byte(new_value[1], register + 1);
+            }
+
+            // Decrement register
+            DEC_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+
+                // Decrement value
+                let old_value = u16::from_be_bytes(register_memory);
+                let new_value = (old_value + 1).to_be_bytes();
+
+                // Write register
+                self.registers.set_byte(new_value[0], register);
+                self.registers.set_byte(new_value[1], register + 1);
+            }
+
             // Jump if not equal
             JMP_NOT_EQ => {
                 // Read instruction
@@ -310,30 +549,6 @@ impl CPU {
                 if value != self.get_register("acc") {
                     self.set_register("ip", address);
                 }
-            }
-
-            // Add register to register
-            ADD_REG_REG => {
-                // Read instruction
-                let r1_offset = self.fetch_register_index();
-                let r2_offset = self.fetch_register_index();
-
-                // Read register 1
-                let r1_memory = [
-                    self.registers.get_byte(r1_offset),
-                    self.registers.get_byte(r1_offset + 1),
-                ];
-                let value_r1 = u16::from_be_bytes(r1_memory);
-
-                // Read register 2
-                let r2_memory = [
-                    self.registers.get_byte(r2_offset),
-                    self.registers.get_byte(r2_offset + 1),
-                ];
-                let value_r2 = u16::from_be_bytes(r2_memory);
-
-                // Add values
-                self.set_register("acc", value_r1 + value_r2);
             }
 
             // Push literal
