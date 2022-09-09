@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 // Instructions for the CPU
 
-// Move instructions // TODO: Test if all instructions are implemented correctly
+// Move instructions
 pub const MOV_LIT_REG: u8 = 0x10;
 pub const MOV_REG_REG: u8 = 0x11;
 pub const MOV_REG_MEM: u8 = 0x12;
@@ -14,7 +14,7 @@ pub const MOV_LIT_MEM: u8 = 0x14;
 pub const MOV_REG_PTR_REG: u8 = 0x15;
 pub const MOV_LIT_OFF_REG: u8 = 0x16;
 
-// Arithmetic instructions // TODO: Test if all instructions are implemented correctly
+// Arithmetic instructions
 pub const ADD_REG_REG: u8 = 0x20;
 pub const ADD_LIT_REG: u8 = 0x21;
 pub const SUB_LIT_REG: u8 = 0x22;
@@ -25,7 +25,7 @@ pub const DEC_REG: u8 = 0x26;
 pub const MUL_LIT_REG: u8 = 0x27;
 pub const MUL_REG_REG: u8 = 0x28;
 
-// Binary manipulation instructions // TODO: Test if all instructions are implemented correctly
+// Binary manipulation instructions
 pub const LSH_REG_LIT: u8 = 0x30;
 pub const LSH_REG_REG: u8 = 0x31;
 pub const RSH_REG_LIT: u8 = 0x32;
@@ -38,9 +38,9 @@ pub const XOR_REG_LIT: u8 = 0x38;
 pub const XOR_REG_REG: u8 = 0x39;
 pub const NOT: u8 = 0x3A;
 
-// Branching instructions // TODO: Test if all instructions are implemented correctly
-pub const JMP_NOT_EQ: u8 = 0x40;
-pub const JNE_REG: u8 = 0x41;
+// Branching instructions
+pub const JNE_REG: u8 = 0x40;
+pub const JNE_LIT: u8 = 0x41;
 pub const JEQ_REG: u8 = 0x42;
 pub const JEQ_LIT: u8 = 0x43;
 pub const JLT_REG: u8 = 0x44;
@@ -52,7 +52,7 @@ pub const JLE_LIT: u8 = 0x49;
 pub const JGE_REG: u8 = 0x4A;
 pub const JGE_LIT: u8 = 0x4B;
 
-// Miscellaneous instructions // TODO: Test if all instructions are implemented correctly
+// Miscellaneous instructions
 pub const PSH_LIT: u8 = 0x50;
 pub const PSH_REG: u8 = 0x51;
 pub const POP: u8 = 0x52;
@@ -299,10 +299,11 @@ impl CPU {
                 let register_to = self.fetch_register_index();
 
                 // Read offset
-                let offset = u16::from_be_bytes([
+                let register_memory = [
                     self.registers.get_byte(register_from),
                     self.registers.get_byte(register_from + 1),
-                ]);
+                ];
+                let offset = u16::from_be_bytes(register_memory);
 
                 // Read value
                 let value = [
@@ -356,10 +357,11 @@ impl CPU {
                 let register_to = self.fetch_register_index();
 
                 // Read register
-                let pointer = u16::from_be_bytes([
+                let register_memory = [
                     self.registers.get_byte(register_from),
                     self.registers.get_byte(register_from + 1),
-                ]);
+                ];
+                let pointer = u16::from_be_bytes(register_memory);
 
                 // Read pointer value
                 let value = [
@@ -562,7 +564,7 @@ impl CPU {
 
                 // Decrement value
                 let old_value = u16::from_be_bytes(register_memory);
-                let new_value = (old_value + 1).to_be_bytes();
+                let new_value = (old_value - 1).to_be_bytes();
 
                 // Write register
                 self.registers.set_byte(new_value[0], register);
@@ -767,8 +769,29 @@ impl CPU {
                 self.set_register("acc", !value_register)
             }
 
-            // Jump if not equal
-            JMP_NOT_EQ => {
+            // Branching instructions
+
+            // Jump if register not equal
+            JNE_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let address = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Move instruction pointer
+                if value_register != self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if literal not equal
+            JNE_LIT => {
                 // Read instruction
                 let value = self.fetch16();
                 let address = self.fetch16();
@@ -778,6 +801,163 @@ impl CPU {
                     self.set_register("ip", address);
                 }
             }
+
+            // Jump if register equal
+            JEQ_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let address = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Move instruction pointer
+                if value_register == self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if literal equal
+            JEQ_LIT => {
+                // Read instruction
+                let value = self.fetch16();
+                let address = self.fetch16();
+
+                // Move instruction pointer
+                if value == self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if register less then
+            JLT_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let address = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Move instruction pointer
+                if value_register < self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if literal less than
+            JLT_LIT => {
+                // Read instruction
+                let value = self.fetch16();
+                let address = self.fetch16();
+
+                // Move instruction pointer
+                if value < self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if register greater then
+            JGT_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let address = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Move instruction pointer
+                if value_register > self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if literal greater than
+            JGT_LIT => {
+                // Read instruction
+                let value = self.fetch16();
+                let address = self.fetch16();
+
+                // Move instruction pointer
+                if value < self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if register greater then
+            JLE_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let address = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Move instruction pointer
+                if value_register <= self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if literal less or equal than
+            JLE_LIT => {
+                // Read instruction
+                let value = self.fetch16();
+                let address = self.fetch16();
+
+                // Move instruction pointer
+                if value <= self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if register greater then
+            JGE_REG => {
+                // Read instruction
+                let register = self.fetch_register_index();
+                let address = self.fetch16();
+
+                // Read register
+                let register_memory = [
+                    self.registers.get_byte(register),
+                    self.registers.get_byte(register + 1),
+                ];
+                let value_register = u16::from_be_bytes(register_memory);
+
+                // Move instruction pointer
+                if value_register >= self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Jump if literal greater or equal than
+            JGE_LIT => {
+                // Read instruction
+                let value = self.fetch16();
+                let address = self.fetch16();
+
+                // Move instruction pointer
+                if value >= self.get_register("acc") {
+                    self.set_register("ip", address);
+                }
+            }
+
+            // Miscellaneous instructions
 
             // Push literal
             PSH_LIT => {
@@ -876,13 +1056,13 @@ impl CPU {
         // Print debug info
         if debug {
             self.debug();
-            self.device_mapper.view_memory(self.get_register("ip"), 32);
-            self.device_mapper.view_memory(0xFFFF - 32, 32);
+            self.device_mapper.view_memory(self.get_register("ip"), 16);
+            self.device_mapper.view_memory(0xFFFF - 16, 16);
+            self.device_mapper.view_memory(0x0F00, 16);
             println!("");
 
             // Wait for input
-            let mut input = String::new();
-            std::io::stdin().read_line(&mut input).unwrap();
+            std::io::stdin().read_line(&mut String::new()).unwrap();
         }
 
         // Return false if not ended
@@ -903,13 +1083,10 @@ impl CPU {
         // Print debug info
         if debug {
             self.debug();
-            self.device_mapper.view_memory(self.get_register("ip"), 32);
-            self.device_mapper.view_memory(0xFFFF - 32, 32);
+            self.device_mapper.view_memory(self.get_register("ip"), 16);
+            self.device_mapper.view_memory(0xFFFF - 16, 16);
+            self.device_mapper.view_memory(0x0F00, 16);
             println!("");
-
-            // Wait for input
-            let mut input = String::new();
-            std::io::stdin().read_line(&mut input).unwrap();
         }
 
         // Exit program
@@ -919,7 +1096,7 @@ impl CPU {
     // Print registers
     pub fn debug(&self) {
         for (_, name) in self.registers_names.iter().enumerate() {
-            println!("{}: 0x{:02X}", name, self.get_register(name));
+            println!("{}: 0x{:04X}", name, self.get_register(name));
         }
     }
 }
